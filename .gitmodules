@@ -1,0 +1,3 @@
+[submodule "stm32/embassy"]
+	path = stm32/embassy
+	url = git@github.com:embassy-rs/embassy.git
