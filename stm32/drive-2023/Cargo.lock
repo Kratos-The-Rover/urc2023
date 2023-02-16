@@ -345,6 +345,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "drive2023"
+version = "0.0.1"
+dependencies = [
+ "cortex-m",
+ "cortex-m-rt",
+ "defmt",
+ "defmt-rtt",
+ "embassy-executor",
+ "embassy-net",
+ "embassy-stm32",
+ "embassy-sync",
+ "embassy-time",
+ "embassy-usb",
+ "embedded-hal 0.2.7",
+ "embedded-io",
+ "embedded-storage",
+ "futures",
+ "heapless",
+ "micromath",
+ "nb 1.0.0",
+ "panic-probe",
+ "serde",
+ "serde-json-core",
+ "static_cell",
+]
+
+[[package]]
 name = "either"
 version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -422,6 +449,7 @@ dependencies = [
  "atomic-polyfill 1.0.1",
  "atomic-pool",
  "defmt",
+ "embassy-hal-common",
  "embassy-net-driver",
  "embassy-sync",
  "embassy-time",
@@ -595,9 +623,9 @@ dependencies = [
 
 [[package]]
 name = "embedded-nal-async"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0dc8f5d837a6e95e9ecad9b5503fff6ef12e16407706abed1d33fc61eaf90da8"
+checksum = "27ce84f518ca912777ec143db235f4d615e3bf8d4e46d507d6ef12daf5b1df98"
 dependencies = [
  "embedded-io",
  "embedded-nal",
@@ -1331,33 +1359,6 @@ name = "unicode-ident"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "84a22b9f218b40614adcb3f4ff08b703773ad44fa9423e4e0d346d5db86e4ebc"
-
-[[package]]
-name = "urc2023-rs"
-version = "0.0.1"
-dependencies = [
- "cortex-m",
- "cortex-m-rt",
- "defmt",
- "defmt-rtt",
- "embassy-executor",
- "embassy-net",
- "embassy-stm32",
- "embassy-sync",
- "embassy-time",
- "embassy-usb",
- "embedded-hal 0.2.7",
- "embedded-io",
- "embedded-storage",
- "futures",
- "heapless",
- "micromath",
- "nb 1.0.0",
- "panic-probe",
- "serde",
- "serde-json-core",
- "static_cell",
-]
 
 [[package]]
 name = "usb-device"
