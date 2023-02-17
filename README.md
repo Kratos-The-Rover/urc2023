@@ -27,3 +27,4 @@ The stm32 folder contains the various programs required to run the microcontroll
 To build these programs, install `cargo`, `cd` into the directory of the program and run
 ```sh
 cargo run --release
+```
