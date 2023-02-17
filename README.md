@@ -1,4 +1,4 @@
-# urc2023
+# URC 2023 - Controls Stack
 All of the python, cpp and ino files for URC 2023
 
 ****make sure to build the urc2023 package on a new workspace****
@@ -20,3 +20,10 @@ for panorama:
 2. Press 1 and enter to capture images
 3. to stitch the images:
      rosrun urc2023 panorama.py
+
+## stm32 and Embassy
+Embassy is the library used for asynchronous programming on the STM32, and needs to be in the same folder as the code
+The stm32 folder contains the various programs required to run the microcontrollers on the rover
+To build these programs, install `cargo`, `cd` into the directory of the program and run
+```sh
+cargo run --release
