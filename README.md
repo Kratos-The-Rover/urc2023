@@ -12,7 +12,7 @@ to start videofeeds:
 2. on the basestation 
     roslaunch urc2023 cameras_feed.launch
 
-for panorama:
+for panorama:  
 *camera movement should be as small as possible for panorama.py to stitch it*  
 *captured images and stitched pano can be found in jetson's /home/Captures *
 1. on kratos terminal run panorama_captures.py  
