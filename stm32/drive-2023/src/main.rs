@@ -17,6 +17,7 @@ use heapless::{Deque, String};
 use {defmt_rtt as _, panic_probe as _};
 
 pub mod cytron;
+pub mod imu;
 
 const UART_BUF_SIZE: usize = 512;
 

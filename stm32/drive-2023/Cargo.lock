@@ -352,6 +352,7 @@ dependencies = [
  "cortex-m-rt",
  "defmt",
  "defmt-rtt",
+ "embassy-embedded-hal",
  "embassy-executor",
  "embassy-net",
  "embassy-stm32",
@@ -364,6 +365,7 @@ dependencies = [
  "futures",
  "heapless",
  "micromath",
+ "mpu9250-i2c",
  "nb 1.0.0",
  "panic-probe",
  "serde",
@@ -918,6 +920,15 @@ name = "micromath"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39617bc909d64b068dcffd0e3e31679195b5576d0c83fadc52690268cc2b2b55"
+
+[[package]]
+name = "mpu9250-i2c"
+version = "0.6.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "48bf7ee632cb58363dbb3eaf861d74f113b69cf52978ecaa597a7bdbba62efc5"
+dependencies = [
+ "embedded-hal 0.2.7",
+]
 
 [[package]]
 name = "nb"

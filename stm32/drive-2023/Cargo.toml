@@ -10,6 +10,7 @@ embassy-time = { version = "0.1.0", path = "../embassy/embassy-time", features =
 embassy-stm32 = { version = "0.1.0", path = "../embassy/embassy-stm32", features = ["nightly", "unstable-traits", "defmt", "stm32f401cc", "unstable-pac", "memory-x", "time-driver-any", "exti"]  }
 embassy-usb = { version = "0.1.0", path = "../embassy/embassy-usb", features = ["defmt"] }
 embassy-net = { version = "0.1.0", path = "../embassy/embassy-net", features = ["defmt", "tcp", "dhcpv4", "medium-ethernet", "nightly"], optional = true }
+embassy-embedded-hal = { version = "0.1.0", path = "../embassy/embassy-embedded-hal" }
 
 defmt = "0.3"
 defmt-rtt = "0.4"
@@ -28,6 +29,8 @@ static_cell = "1.0"
 
 serde = { version = "1.0.152", default-features = false, features = ["derive"]}
 serde-json-core = { version = "0.5.0", default-features = false, features = ["heapless"] }
+
+mpu9250-i2c = "0.6.8"
 
 [profile.release]
 debug = 2
