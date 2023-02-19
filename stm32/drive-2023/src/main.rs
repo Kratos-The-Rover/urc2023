@@ -5,7 +5,7 @@
 use embassy_executor::Spawner;
 use embassy_stm32::{peripherals::*, interrupt, usart::{UartTx, UartRx, Uart, self}};
 use embassy_sync::{blocking_mutex::raw::ThreadModeRawMutex, signal::Signal};
-// use embassy_time::{Timer, Duration};
+use embassy_stm32::gpio::Pin;
 
 use defmt::*;
 
@@ -14,22 +14,26 @@ use serde_json_core as serde_json;
 
 use heapless::{Deque, String};
 
-use {defmt_rtt as _, panic_probe as _};
+// use {defmt_rtt as _, panic_probe as _};
+use defmt_rtt as _;
 
 pub mod cytron;
 pub mod imu;
+pub mod panic;
+
+use panic::PANIC_CHANNEL;
 
 const UART_BUF_SIZE: usize = 512;
+const UART_Q_SIZE: usize = 1024;
 
 static DRIVE_SIGNAL: Signal<ThreadModeRawMutex, DriveData> = Signal::new();
 static CAM_SIGNAL: Signal<ThreadModeRawMutex, CameraFeed> = Signal::new();
 static UART_SIGNAL: Signal<ThreadModeRawMutex, SomeData> = Signal::new();
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, defmt::Format)]
 struct SomeData {
     speed_l: i8,
     speed_r: i8,
-    multiplier: i8,
     reverse: bool,
     camera: CameraFeed
 }
@@ -39,7 +43,7 @@ struct DriveData {
     speed_r: i8
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, defmt::Format)]
 #[repr(C)]
 enum CameraFeed {
     Chassis,
@@ -47,31 +51,7 @@ enum CameraFeed {
     Cam1
 }
 
-#[embassy_executor::task]
-async fn blinker(mut uart_tx: UartTx<'static, USART2, DMA1_CH6>) {
-    let s1 = SomeData {
-        speed_l: 10,
-        speed_r: 15,
-        multiplier: 5,
-        reverse: false,
-        camera: CameraFeed::Chassis
-    };
-
-    let mut txbuf: [u8; UART_BUF_SIZE] = [0; UART_BUF_SIZE];
-
-    loop {
-        // Timer::after(interval).await;
-        serde_json::to_slice(&s1, &mut txbuf).unwrap();
-        for byte in txbuf {
-            uart_tx.write(&[byte]).await.unwrap();
-            if byte == 0 {
-                break;
-            }
-        }
-    }
-}
-
-fn find_first(q: &Deque<u8, UART_BUF_SIZE>, u: u8) -> Option<usize> {
+fn find_first(q: &Deque<u8, UART_Q_SIZE>, u: u8) -> Option<usize> {
     for (i, val) in q.iter().enumerate() {
         if *val == u {
             return Some(i)
@@ -82,12 +62,13 @@ fn find_first(q: &Deque<u8, UART_BUF_SIZE>, u: u8) -> Option<usize> {
 
 #[embassy_executor::task]
 async fn reader(mut uart_rx: UartRx<'static, USART2, DMA1_CH5>) {
-    let mut rxque: Deque<u8, UART_BUF_SIZE> = Deque::new();
-    let mut rxbuf: [u8; UART_BUF_SIZE] = [0; UART_BUF_SIZE];
+    let mut rxque: Deque<u8, UART_Q_SIZE> = Deque::new();
+    let mut rxbuf: [u8; UART_BUF_SIZE];
     let mut jsonbuf: String<512>;
     let mut s: SomeData;
     let mut c: char;
     loop {
+        rxbuf = [0; UART_BUF_SIZE];
         uart_rx.read_until_idle(&mut rxbuf).await.unwrap();
         for c in rxbuf.iter() {
             rxque.push_back(*c).unwrap();
@@ -114,6 +95,7 @@ async fn reader(mut uart_rx: UartRx<'static, USART2, DMA1_CH5>) {
 #[embassy_executor::task]
 async fn processor() {
     let mut uart_data: SomeData;
+
     loop {
         uart_data = UART_SIGNAL.wait().await;
         DRIVE_SIGNAL.signal(DriveData{
@@ -126,10 +108,19 @@ async fn processor() {
 #[embassy_executor::task]
 async fn motor_control(uart_tx: UartTx<'static, USART1, DMA2_CH7>) {
     let mut cyt = cytron::CytronSerial::new(uart_tx, None);
+
+    cyt.control(0, 0).await;
+
     let mut d: DriveData;
+    let panic_sub = PANIC_CHANNEL.subscriber().unwrap();
+
     loop {
         d = DRIVE_SIGNAL.wait().await;
-        cyt.control(d.speed_l, d.speed_r);
+        cyt.control(d.speed_l, d.speed_r).await;
+        if panic_sub.available() != 0 {
+            cyt.control(0, 0).await;
+            break;
+        }
     }
 }
 
@@ -142,6 +133,9 @@ async fn main(spawner: Spawner) {
     let mut uart2_config =  usart::Config::default();
     uart2_config.baudrate = 1000000;
 
+    let mut uart1_config =  usart::Config::default();
+    uart1_config.baudrate = 115200;
+
     let uart2 = Uart::new(peripherals.USART2, peripherals.PA3, peripherals.PA2, irq, peripherals.DMA1_CH6, peripherals.DMA1_CH5, uart2_config);
 
     let uart2_tx: UartTx<USART2, DMA1_CH6>;
@@ -149,9 +143,12 @@ async fn main(spawner: Spawner) {
 
     (uart2_tx, uart2_rx) = uart2.split();
 
-    let uart1_tx = UartTx::new(peripherals.USART1, peripherals.PA9, peripherals.DMA2_CH7, uart2_config);
+    let uart1_tx = UartTx::new(peripherals.USART1, peripherals.PA9, peripherals.DMA2_CH7, uart1_config);
+
+    let p_wdt = peripherals.IWDG;
 
     unwrap!(spawner.spawn(reader(uart2_rx)));
     unwrap!(spawner.spawn(processor()));
     unwrap!(spawner.spawn(motor_control(uart1_tx)));
+    unwrap!(spawner.spawn(panic::watchdog(p_wdt, peripherals.PC13.degrade())))
 }
