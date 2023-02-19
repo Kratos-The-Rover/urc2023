@@ -1,12 +1,12 @@
 #!/bin/env python3
 import rospy
-from base import SomeData, CameraFeed
+from base import SendData, CameraFeed
 from geometry_msgs.msg import Twist
 from serial import Serial
 
 class STMSerial():
     def __init__(self, port="/dev/serial/ttyACM0", baud=1000000):
-        self.data = SomeData(0, 0, 0, False, CameraFeed.Chassis)
+        self.data = SendData(0, 0, False, CameraFeed.Chassis)
         self.port = Serial(port, baudrate=baud)
         print("Connected to:", self.port.name)
 
